@@ -85,29 +85,40 @@ export default class {
     if (typeof $('#modaleFileAdmin1').modal === 'function') $('#modaleFileAdmin1').modal('show')
   }
 
+  // BUG #4
   handleEditTicket(e, bill, bills) {
-    if (this.counter === undefined || this.id !== bill.id) this.counter = 0
-    if (this.id === undefined || this.id !== bill.id) this.id = bill.id
-    if (this.counter % 2 === 0) {
-      bills.forEach(b => {
-        $(`#open-bill${b.id}`).css({ background: '#0D5AE5' })
-      })
-      $(`#open-bill${bill.id}`).css({ background: '#2A2B35' })
-      $('.dashboard-right-container div').html(DashboardFormUI(bill))
-      $('.vertical-navbar').css({ height: '150vh' })
-      this.counter ++
-    } else {
-      $(`#open-bill${bill.id}`).css({ background: '#0D5AE5' })
-
+    const currentSelectedBillId = this.selectedBillId;
+  
+    if (currentSelectedBillId === bill.id) {
+      // If the clicked bill is the currently selected one, toggle the big billed icon
+      $(`#open-bill${bill.id}`).css({ background: '#0D5AE5' });
       $('.dashboard-right-container div').html(`
         <div id="big-billed-icon" data-testid="big-billed-icon"> ${BigBilledIcon} </div>
-      `)
-      $('.vertical-navbar').css({ height: '120vh' })
-      this.counter ++
+      `);
+      $('.vertical-navbar').css({ height: '120vh' });
+      
+      // Clear the selected bill
+      this.selectedBillId = null;
+    } else {
+      // If a different bill is clicked, update the selected styles and content
+      bills.forEach((b) => {
+        $(`#open-bill${b.id}`).css({ background: '#0D5AE5' });
+      });
+      $(`#open-bill${bill.id}`).css({ background: '#2A2B35' });
+      $('.dashboard-right-container div').html(DashboardFormUI(bill));
+      $('.vertical-navbar').css({ height: '150vh' });
+  
+      // Update the selected bill
+      this.selectedBillId = bill.id;
     }
-    $('#icon-eye-d').click(this.handleClickIconEye)
-    $('#btn-accept-bill').click((e) => this.handleAcceptSubmit(e, bill))
-    $('#btn-refuse-bill').click((e) => this.handleRefuseSubmit(e, bill))
+  
+    // Attach event listener for subsequent clicks
+    bills.forEach(b => {
+      $(`#open-bill${b.id}`).off('click').click((e) => this.handleEditTicket(e, b, bills));
+    });
+    $('#icon-eye-d').off('click').click(this.handleClickIconEye);
+    $('#btn-accept-bill').off('click').click((e) => this.handleAcceptSubmit(e, bill));
+    $('#btn-refuse-bill').off('click').click((e) => this.handleRefuseSubmit(e, bill));
   }
 
   handleAcceptSubmit = (e, bill) => {
