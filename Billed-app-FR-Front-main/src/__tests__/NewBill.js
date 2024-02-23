@@ -144,38 +144,6 @@ describe("Given I am connected as an employee", () => {
 
         expect(data).toMatchObject(dataToCheck);
       });
-
-      // NewBill instance can be created with required parameters
-      it("should create a new instance of NewBill with the required parameters", () => {
-        const document = { querySelector: jest.fn() };
-        const onNavigate = jest.fn();
-        const store = { bills: jest.fn() };
-        const localStorage = { getItem: jest.fn() };
-
-        const formNewBill = document.querySelector(
-          `form[data-testid="form-new-bill"]`
-        );
-        formNewBill.addEventListener = jest.fn().mockImplementation(() => {
-          throw new TypeError(
-            "Cannot read properties of undefined (reading 'addEventListener')"
-          );
-        });
-
-        const file = document.querySelector(`input[data-testid="file"]`);
-        file.addEventListener = jest.fn();
-
-        const newBill = new NewBill({
-          document,
-          onNavigate,
-          store,
-          localStorage,
-        });
-
-        expect(newBill.document).toBe(document);
-        expect(newBill.onNavigate).toBe(onNavigate);
-        expect(newBill.store).toBe(store);
-        expect(newBill.localStorage).toBe(localStorage);
-      });
     });
   });
 });

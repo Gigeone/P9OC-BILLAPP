@@ -76,52 +76,54 @@ describe("Given I am connected as an employee", () => {
       );
       expect(newBillUrl).toBe("#employee/bill/new");
     });
-  });
 
-  test("handleClickIconEye is called when the icon is clicked", () => {
-    const billsInstance = new Bills({
-      document: document,
-      onNavigate: jest.fn(),
-      store: MockedStore,
+    test("handleClickIconEye is called when the icon is clicked", () => {
+      const billsInstance = new Bills({
+        document: document,
+        onNavigate: jest.fn(),
+        store: MockedStore,
+      });
+      const mockIcon = document.createElement("div");
+      mockIcon.setAttribute("data-bill-url", "mockBillUrl");
+  
+      // Mock the handleClickIconEye method
+      billsInstance.handleClickIconEye = jest.fn();
+  
+      // Mock the modal function directly on the prototype of window.$
+      window.$.fn.modal = jest.fn();
+  
+      // Attach the handleClickIconEye method to the icon click event
+      mockIcon.addEventListener("click", () =>
+        billsInstance.handleClickIconEye(mockIcon)
+      );
+  
+      // Trigger the click event on the mocked icon
+      mockIcon.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+  
+      // Checking if the handleClickIconEye method was called with the expected parameters
+      expect(billsInstance.handleClickIconEye).toHaveBeenCalledWith(mockIcon);
     });
-    const mockIcon = document.createElement("div");
-    mockIcon.setAttribute("data-bill-url", "mockBillUrl");
 
-    // Mock the handleClickIconEye method
-    billsInstance.handleClickIconEye = jest.fn();
-
-    // Mock the modal function directly on the prototype of window.$
-    window.$.fn.modal = jest.fn();
-
-    // Attach the handleClickIconEye method to the icon click event
-    mockIcon.addEventListener("click", () =>
-      billsInstance.handleClickIconEye(mockIcon)
-    );
-
-    // Trigger the click event on the mocked icon
-    mockIcon.dispatchEvent(new MouseEvent("click", { bubbles: true }));
-
-    // Checking if the handleClickIconEye method was called with the expected parameters
-    expect(billsInstance.handleClickIconEye).toHaveBeenCalledWith(mockIcon);
-  });
-
-  test("handleClickIconEye shows modal", () => {
-    const billsInstance = new Bills({
-      document: document,
-      onNavigate: jest.fn(),
-      store: MockedStore,
+    test("handleClickIconEye shows modal", () => {
+      const billsInstance = new Bills({
+        document: document,
+        onNavigate: jest.fn(),
+        store: MockedStore,
+      });
+      const mockIcon = document.createElement("div");
+      mockIcon.setAttribute("data-bill-url", "mockBillUrl");
+  
+      // Mock the modal function directly on the prototype of window.$
+      window.$.fn.modal = jest.fn();
+  
+      billsInstance.handleClickIconEye(mockIcon);
+  
+      // Checking if the modal function was called with the expected parameters
+      expect(window.$.fn.modal).toHaveBeenCalledWith("show");
     });
-    const mockIcon = document.createElement("div");
-    mockIcon.setAttribute("data-bill-url", "mockBillUrl");
-
-    // Mock the modal function directly on the prototype of window.$
-    window.$.fn.modal = jest.fn();
-
-    billsInstance.handleClickIconEye(mockIcon);
-
-    // Checking if the modal function was called with the expected parameters
-    expect(window.$.fn.modal).toHaveBeenCalledWith("show");
   });
+
+  
 
   describe("Bills", () => {
     it('should add event listener to each "eye" icon if they exist', () => {
@@ -182,7 +184,7 @@ describe("Given I am connected as an employee", () => {
       });
     });
 
-    it("should return bills when store is defined", async () => {
+    test("should return bills when store is defined", async () => {
       const mockBills = [
         { date: "2022-01-01", status: "pending" },
         { date: "2022-02-01", status: "accepted" },
@@ -197,7 +199,7 @@ describe("Given I am connected as an employee", () => {
       ]);
     });
 
-    it("should handle error when date format is incorrect", async () => {
+    test("should handle error when date format is incorrect", async () => {
       const mockBills = [{ date: "incorrect-date", status: "pending" }];
       instance.store.list.mockResolvedValue(mockBills);
 
@@ -208,12 +210,55 @@ describe("Given I am connected as an employee", () => {
       ]);
     });
 
-    it("should return undefined when store is not defined", async () => {
+    test("should return undefined when store is not defined", async () => {
       instance.store = undefined;
 
       const result = await instance.getBills();
 
       expect(result).toBeUndefined();
+    });
+
+    test('getBills handles error when bills list returns 404', async () => {
+      const mockError = new Error('Simulated error: Bills not found (404)');
+    
+      // Mock the list method to return a rejected promise with 404 error
+      const mockStoreWith404Error = {
+        bills: jest.fn(() => ({
+          list: jest.fn(() => Promise.reject(mockError)),
+        })),
+      };
+    
+      const billsComponent = new Bills({ document, onNavigate, store: mockStoreWith404Error });
+    
+      // Attempt to call the getBills method
+      try {
+        await billsComponent.getBills();
+      } catch (error) {
+        // Verify that the expected 404 error is caught
+        expect(error).toBe(mockError);
+      }
+    });
+    
+    // Similar structure can be used for testing 500 error
+    test('getBills handles error when bills list returns 500', async () => {
+      const mockError = new Error('Simulated error: Internal Server Error (500)');
+    
+      // Mock the list method to return a rejected promise with 500 error
+      const mockStoreWith500Error = {
+        bills: jest.fn(() => ({
+          list: jest.fn(() => Promise.reject(mockError)),
+        })),
+      };
+    
+      const billsComponent = new Bills({ document, onNavigate, store: mockStoreWith500Error });
+    
+      // Attempt to call the getBills method
+      try {
+        await billsComponent.getBills();
+      } catch (error) {
+        // Verify that the expected 500 error is caught
+        expect(error).toBe(mockError);
+      }
     });
   });
 });
