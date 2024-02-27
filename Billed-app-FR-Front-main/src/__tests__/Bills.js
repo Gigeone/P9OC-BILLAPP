@@ -127,7 +127,7 @@ describe("Given I am connected as an employee", () => {
 
   describe("Bills", () => {
     it('should add event listener to each "eye" icon if they exist', () => {
-      // Mock document.querySelectorAll to return multiple "eye" icons
+      // Mock document.querySelectorAll pour retourner plusieurs icônes "œil"
       const mockIcon1 = document.createElement("div");
       const mockIcon2 = document.createElement("div");
       mockIcon1.setAttribute("data-testid", "icon-eye");
@@ -135,10 +135,10 @@ describe("Given I am connected as an employee", () => {
       document.body.appendChild(mockIcon1);
       document.body.appendChild(mockIcon2);
 
-      // Mock handleClickIconEye method
+      // Mock de la méthode handleClickIconEye
       const handleClickIconEyeMock = jest.fn();
 
-      // Create a new instance of Bills
+      // Créer une nouvelle instance de Bills
       const billsInstance = new Bills({
         document,
         onNavigate: jest.fn(),
@@ -146,22 +146,23 @@ describe("Given I am connected as an employee", () => {
         localStorage: {},
       });
 
+      // Affecter la méthode handleClickIconEyeMock à handleClickIconEye de l'instance de Bills
       billsInstance.handleClickIconEye = handleClickIconEyeMock;
 
-      // Verify that event listeners are attached to each "eye" icon
+      // Vérifier que des écouteurs d'événements sont attachés à chaque icône "œil"
       expect(mockIcon1.onclick).toBeDefined();
       expect(mockIcon2.onclick).toBeDefined();
 
-      // Trigger click event on mockIcon1
+      // Déclencher l'événement de clic sur mockIcon1
       mockIcon1.click();
 
-      // Verify that handleClickIconEye is called with mockIcon1
+      // Vérifier que handleClickIconEye est appelé avec mockIcon1
       expect(handleClickIconEyeMock).toHaveBeenCalledWith(mockIcon1);
 
-      // Trigger click event on mockIcon2
+      // Déclencher l'événement de clic sur mockIcon2
       mockIcon2.click();
 
-      // Verify that handleClickIconEye is called with mockIcon2
+      // Vérifier que handleClickIconEye est appelé avec mockIcon2
       expect(handleClickIconEyeMock).toHaveBeenCalledWith(mockIcon2);
     });
   });

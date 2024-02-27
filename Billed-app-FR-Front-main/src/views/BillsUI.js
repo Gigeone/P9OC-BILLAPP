@@ -21,14 +21,38 @@ const row = (bill) => {
 
 // Bug #1
 const rows = (data) => {
-  // ordre du plus récent au plus ancien
-  return data?.length
-    ? data
-        .sort((a, b) => new Date(b.date) - new Date(a.date))
-        .map((bill) => row(bill))
-        .join("")
-    : "";
-};
+
+  function convertToEnglishDate(frenchDateStr) {
+    // Normaliser la date française pour correspondre au format reconnu par JavaScript
+    const normalizedFrenchDateStr = frenchDateStr
+        .replace('Jan.', 'Jan')
+        .replace('Fév.', 'Feb')
+        .replace('Mars', 'Mar')
+        .replace('Avr.', 'Apr')
+        .replace('Mai', 'May')
+        .replace('Juin', 'Jun')
+        .replace('Juil.', 'Jul')
+        .replace('Aoû', 'Aug')
+        .replace('Sept.', 'Sep')
+        .replace('Oct.', 'Oct')
+        .replace('Nov.', 'Nov')
+        .replace('Déc.', 'Dec');
+
+    // Créer un objet Date en utilisant la date normalisée
+    return new Date(normalizedFrenchDateStr);
+  }
+  // Suppresion des bills n'étant pas rempli correctement
+  const filteredData = data.filter(bill => bill.name !== undefined && bill.name !== null);
+
+  if (filteredData) {
+    filteredData.sort(function (a, b) {
+      let dateA  = convertToEnglishDate(a.date);
+      let dateB  = convertToEnglishDate(b.date);
+      return dateB - dateA;
+    });
+  }
+  return (filteredData && filteredData.length) ? filteredData.map(bill => row(bill)).join("") : ""
+}
 
 export default ({ data: bills, loading, error }) => {
   const modal = () => `
