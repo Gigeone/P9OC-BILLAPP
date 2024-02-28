@@ -42,16 +42,18 @@ const rows = (data) => {
     return new Date(normalizedFrenchDateStr);
   }
   // Suppresion des bills n'étant pas rempli correctement
-  const filteredData = data.filter(bill => bill.name !== undefined && bill.name !== null);
+  // console.log(data);
+  // const filteredData = data.filter(bill => bill.name !== undefined && bill.name !== null);
+  // console.log(filteredData);
 
-  if (filteredData) {
-    filteredData.sort(function (a, b) {
+  if (data) {
+    data.sort(function (a, b) {
       let dateA  = convertToEnglishDate(a.date);
       let dateB  = convertToEnglishDate(b.date);
       return dateB - dateA;
     });
   }
-  return (filteredData && filteredData.length) ? filteredData.map(bill => row(bill)).join("") : ""
+  return (data && data.length) ? data.map(bill => row(bill)).join("") : ""
 }
 
 export default ({ data: bills, loading, error }) => {

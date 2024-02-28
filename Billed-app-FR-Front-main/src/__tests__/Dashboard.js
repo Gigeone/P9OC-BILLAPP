@@ -13,7 +13,7 @@ import mockStore from "../__mocks__/store"
 import { bills } from "../fixtures/bills"
 import router from "../app/Router"
 
-jest.mock("../app/store", () => mockStore)
+jest.mock("../app/Store", () => mockStore)
 
 describe('Given I am connected as an Admin', () => {
   describe('When I am on Dashboard page, there are bills, and there is one pending', () => {
@@ -251,9 +251,9 @@ describe("Given I am a user connected as Admin", () => {
       router()
       window.onNavigate(ROUTES_PATH.Dashboard)
       await waitFor(() => screen.getByText("Validations"))
-      const contentPending  = await screen.getByText("En attente (1)")
+      const contentPending  = screen.getByText("En attente (1)")
       expect(contentPending).toBeTruthy()
-      const contentRefused  = await screen.getByText("Refusé (2)")
+      const contentRefused  = screen.getByText("Refusé (2)")
       expect(contentRefused).toBeTruthy()
       expect(screen.getByTestId("big-billed-icon")).toBeTruthy()
     })

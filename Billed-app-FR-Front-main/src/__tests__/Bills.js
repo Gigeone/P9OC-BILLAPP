@@ -239,6 +239,21 @@ describe("Given I am connected as an employee", () => {
         expect(error).toBe(mockError);
       }
     });
+
+    test('fetches bills from an API and fails with 404 message error', async () => {
+      mockStore.bills.mockImplementationOnce(() => {
+        return {
+          list: () => {
+            return Promise.reject(new Error('Erreur 404'))
+          },
+        }
+      })
+
+      document.body.innerHTML = BillsUI({ error: 'Erreur 404' })
+      const message = screen.getByText(/Erreur 404/)
+
+      expect(message).toBeTruthy()
+    })
     
     // Similar structure can be used for testing 500 error
     test('getBills handles error when bills list returns 500', async () => {
@@ -261,5 +276,20 @@ describe("Given I am connected as an employee", () => {
         expect(error).toBe(mockError);
       }
     });
+
+    test('fetches messages from an API and fails with 500 message error', async () => {
+      mockStore.bills.mockImplementationOnce(() => {
+        return {
+          list: () => {
+            return Promise.reject(new Error('Erreur 500'))
+          },
+        }
+      })
+
+      document.body.innerHTML = BillsUI({ error: 'Erreur 500' })
+      const message = screen.getByText(/Erreur 500/)
+
+      expect(message).toBeTruthy()
+    })
   });
 });
