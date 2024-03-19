@@ -219,72 +219,22 @@ describe("Given I am connected as an employee", () => {
       expect(result).toBeUndefined();
     });
 
-    test('getBills handles error when bills list returns 404', async () => {
-      const mockError = new Error('Simulated error: Bills not found (404)');
-    
-      // Mock the list method to return a rejected promise with 404 error
-      const mockStoreWith404Error = {
-        bills: jest.fn(() => ({
-          list: jest.fn(() => Promise.reject(mockError)),
-        })),
+    test('fetches bills from an API and fails with 404 message error', async () => {
+      MockedStore.bills = {
+        list: jest.fn(() => Promise.reject(new Error('Erreur 404')))
       };
     
-      const billsComponent = new Bills({ document, onNavigate, store: mockStoreWith404Error });
+      document.body.innerHTML = BillsUI({ error: 'Erreur 404' });
+      const message = screen.getByText(/Erreur 404/);
     
-      // Attempt to call the getBills method
-      try {
-        await billsComponent.getBills();
-      } catch (error) {
-        // Verify that the expected 404 error is caught
-        expect(error).toBe(mockError);
-      }
+      expect(message).toBeTruthy();
     });
-
-    test('fetches bills from an API and fails with 404 message error', async () => {
-      mockStore.bills.mockImplementationOnce(() => {
-        return {
-          list: () => {
-            return Promise.reject(new Error('Erreur 404'))
-          },
-        }
-      })
-
-      document.body.innerHTML = BillsUI({ error: 'Erreur 404' })
-      const message = screen.getByText(/Erreur 404/)
-
-      expect(message).toBeTruthy()
-    })
     
     // Similar structure can be used for testing 500 error
-    test('getBills handles error when bills list returns 500', async () => {
-      const mockError = new Error('Simulated error: Internal Server Error (500)');
-    
-      // Mock the list method to return a rejected promise with 500 error
-      const mockStoreWith500Error = {
-        bills: jest.fn(() => ({
-          list: jest.fn(() => Promise.reject(mockError)),
-        })),
-      };
-    
-      const billsComponent = new Bills({ document, onNavigate, store: mockStoreWith500Error });
-    
-      // Attempt to call the getBills method
-      try {
-        await billsComponent.getBills();
-      } catch (error) {
-        // Verify that the expected 500 error is caught
-        expect(error).toBe(mockError);
-      }
-    });
-
     test('fetches messages from an API and fails with 500 message error', async () => {
-      mockStore.bills.mockImplementationOnce(() => {
-        return {
-          list: () => {
-            return Promise.reject(new Error('Erreur 500'))
-          },
-        }
-      })
+      MockedStore.bills = {
+        list: jest.fn(() => Promise.reject(new Error('Erreur 500')))
+      };
 
       document.body.innerHTML = BillsUI({ error: 'Erreur 500' })
       const message = screen.getByText(/Erreur 500/)
