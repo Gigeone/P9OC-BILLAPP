@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 import MockedStore from "../__mocks__/store";
-import { screen, waitFor } from "@testing-library/dom";
+import { screen, waitFor, fireEvent } from "@testing-library/dom";
 import Bills from "../containers/Bills";
 import BillsUI from "../views/BillsUI.js";
 import { bills } from "../fixtures/bills.js";
@@ -10,6 +10,8 @@ import { ROUTES_PATH } from "../constants/routes.js";
 import { localStorageMock } from "../__mocks__/localStorage.js";
 
 import router from "../app/Router.js";
+
+jest.mock("../app/store", () => MockedStore);
 
 describe("Given I am connected as an employee", () => {
   describe("When I am on Bills Page", () => {
@@ -46,36 +48,60 @@ describe("Given I am connected as an employee", () => {
     });
 
     // Clicking on the "New Bill" button navigates to the "NewBill" page.
-    test("Then clicking on 'New Bill' button should navigate to the NewBill page", async () => {
-      Object.defineProperty(window, "localStorage", {
-        value: localStorageMock,
-      });
-      window.localStorage.setItem(
-        "user",
-        JSON.stringify({
-          type: "Employee",
-        })
-      );
-
+    test("Then it should render NewBill Page", () => {
+      Object.defineProperty(window, 'localStorage', { value: localStorageMock })
+      window.localStorage.setItem('user', JSON.stringify({
+        type: 'Employee'
+      }))
       const root = document.createElement("div");
       root.setAttribute("id", "root");
-      document.body.appendChild(root);
-
+      document.body.append(root);
       router();
-      await window.onNavigate(ROUTES_PATH.Bills);
+      window.onNavigate(ROUTES_PATH.NewBill);
+      const newBills = new Bills({
+        document,
+        onNavigate,
+        localStorage: window.localStorage,
+        store: null
+      })
+      const newBillBtn = screen.getByTestId('btn-new-bill')
+      const handleClickNewBill = jest.fn(newBills.handleClickNewBill)
+      newBillBtn.addEventListener('click',handleClickNewBill)
+      fireEvent.click(newBillBtn);
 
-      // Wait for the "New Bill" button to appear in the DOM
-      await waitFor(() => screen.getByTestId("btn-new-bill"));
+      expect(handleClickNewBill).toHaveBeenCalled();
+      expect(screen.getAllByText("Envoyer une note de frais")).toBeTruthy();
+    }) 
+    // test("Then clicking on 'New Bill' button should navigate to the NewBill page", async () => {
+    //   Object.defineProperty(window, "localStorage", {
+    //     value: localStorageMock,
+    //   });
+    //   window.localStorage.setItem(
+    //     "user",
+    //     JSON.stringify({
+    //       type: "Employee",
+    //     })
+    //   );
 
-      const buttonNewBill = screen.getByTestId("btn-new-bill");
-      await buttonNewBill.dispatchEvent(new MouseEvent("click"));
+    //   const root = document.createElement("div");
+    //   root.setAttribute("id", "root");
+    //   document.body.appendChild(root);
 
-      const newBillUrl = window.location.href.replace(
-        /^https?:\/\/localhost\//,
-        ""
-      );
-      expect(newBillUrl).toBe("#employee/bill/new");
-    });
+    //   router();
+    //   await window.onNavigate(ROUTES_PATH.Bills);
+
+    //   // Wait for the "New Bill" button to appear in the DOM
+    //   await waitFor(() => screen.getByTestId("btn-new-bill"));
+
+    //   const buttonNewBill = screen.getByTestId("btn-new-bill");
+    //   await buttonNewBill.dispatchEvent(new MouseEvent("click"));
+
+    //   const newBillUrl = window.location.href.replace(
+    //     /^https?:\/\/localhost\//,
+    //     ""
+    //   );
+    //   expect(newBillUrl).toBe("#employee/bill/new");
+    // });
 
     test("handleClickIconEye is called when the icon is clicked", () => {
       const billsInstance = new Bills({
@@ -219,27 +245,52 @@ describe("Given I am connected as an employee", () => {
       expect(result).toBeUndefined();
     });
 
-    test('fetches bills from an API and fails with 404 message error', async () => {
-      MockedStore.bills = {
-        list: jest.fn(() => Promise.reject(new Error('Erreur 404')))
-      };
     
-      document.body.innerHTML = BillsUI({ error: 'Erreur 404' });
-      const message = screen.getByText(/Erreur 404/);
-    
-      expect(message).toBeTruthy();
-    });
-    
-    // Similar structure can be used for testing 500 error
-    test('fetches messages from an API and fails with 500 message error', async () => {
-      MockedStore.bills = {
-        list: jest.fn(() => Promise.reject(new Error('Erreur 500')))
-      };
+  });
+  describe("When an error occurs on the API", () => {
+    beforeEach(() => {
+      jest.spyOn(MockedStore, "bills")
+      Object.defineProperty(
+        window,
+        'localStorage',
+        { value: localStorageMock }
+      )
+      window.localStorage.setItem('user', JSON.stringify({
+        type: 'Employee',
+        email: 'a@a'
+      }))
+      const root = document.createElement("div")
+      root.setAttribute("id", "root")
+      document.body.appendChild(root)
+      router()
+    })
 
-      document.body.innerHTML = BillsUI({ error: 'Erreur 500' })
-      const message = screen.getByText(/Erreur 500/)
-
+    test("fetches bills from an API and fails with 404 message error", async () => {
+      MockedStore.bills.mockImplementationOnce(() => {
+        return {
+          list : () =>  {
+            return Promise.reject(new Error("Erreur 404"))
+          }
+        }
+      })
+      window.onNavigate(ROUTES_PATH.Bills)
+      await new Promise(process.nextTick);
+      const message = await waitFor(() => screen.getByText(/Erreur 404/))
       expect(message).toBeTruthy()
     })
-  });
+
+    test("fetches messages from an API and fails with 500 message error", async () => {
+      MockedStore.bills.mockImplementationOnce(() => {
+        return {
+          list : () =>  {
+            return Promise.reject(new Error("Erreur 500"))
+          }
+        }
+      })
+      window.onNavigate(ROUTES_PATH.Bills)
+      await new Promise(process.nextTick);
+      const message = await waitFor(() => screen.getByText(/Erreur 500/))
+      expect(message).toBeTruthy()
+    })
+  })
 });

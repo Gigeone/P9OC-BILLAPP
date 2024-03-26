@@ -84,21 +84,6 @@ const mockedBills = {
   },
 }
 
-// export const mock404Error = {
-//   response: {
-//     status: 404,
-//     data: { error: 'Not Found' }
-//   }
-// };
-
-// export const mock500Error = {
-//   response: {
-//     status: 500,
-//     data: { error: 'Internal Server Error' }
-//   }
-// };
-
-
 export default {
   bills() {
     return mockedBills
