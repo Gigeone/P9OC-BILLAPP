@@ -16,6 +16,7 @@ jest.mock("../app/store", () => MockedStore);
 describe("Given I am connected as an employee", () => {
   describe("When I am on Bills Page", () => {
     test("Then bill icon in vertical layout should be highlighted", async () => {
+      // Définit localStorage avec une session utilisateur de type "Employee"
       Object.defineProperty(window, "localStorage", {
         value: localStorageMock,
       });
@@ -25,85 +26,79 @@ describe("Given I am connected as an employee", () => {
           type: "Employee",
         })
       );
+      // Crée un élément racine dans le DOM
       const root = document.createElement("div");
       root.setAttribute("id", "root");
       document.body.append(root);
+      // Initialise le routage
       router();
+      // Déclenche la navigation vers la page des factures
       window.onNavigate(ROUTES_PATH.Bills);
+       // Attend que l'icône de la fenêtre soit présente dans le DOM
       await waitFor(() => screen.getByTestId("icon-window"));
       const windowIcon = screen.getByTestId("icon-window");
+      // Vérifie si l'icône a la classe "active-icon"
       const hasActiveIconClass = windowIcon.classList.contains("active-icon");
       expect(hasActiveIconClass).toBe(true);
     });
+    
+    // Vérifie que les factures sont ordonnées de la plus ancienne à la plus récente
     test("Then bills should be ordered from earliest to latest", () => {
+      // Injecte le HTML simulé dans le DOM
       document.body.innerHTML = BillsUI({ data: bills });
+      // Récupère les dates des factures
       const dates = screen
         .getAllByText(
           /^(19|20)\d\d[- /.](0[1-9]|1[012])[- /.](0[1-9]|[12][0-9]|3[01])$/i
         )
         .map((a) => a.innerHTML);
+      // Fonction de comparaison pour l'ordre antichronologique
       const antiChrono = (a, b) => (a < b ? 1 : -1);
+      // Trie les dates dans l'ordre antichronologique
       const datesSorted = [...dates].sort(antiChrono);
+      // Vérifie si les dates sont bien triées dans l'ordre antichronologique
       expect(dates).toEqual(datesSorted);
     });
 
-    // Clicking on the "New Bill" button navigates to the "NewBill" page.
+    // Vérifie que le clic sur le bouton "Nouvelle Facture" navigue vers la page "NewBill"
     test("Then it should render NewBill Page", () => {
+       // Définit localStorage avec une session utilisateur de type "Employee"
       Object.defineProperty(window, 'localStorage', { value: localStorageMock })
       window.localStorage.setItem('user', JSON.stringify({
         type: 'Employee'
       }))
+      // Crée un élément racine dans le DOM
       const root = document.createElement("div");
       root.setAttribute("id", "root");
       document.body.append(root);
+      // Initialise le routage
       router();
+      // Déclenche la navigation vers la page "NewBill"
       window.onNavigate(ROUTES_PATH.NewBill);
+      // Crée une nouvelle instance de Bills
       const newBills = new Bills({
         document,
         onNavigate,
         localStorage: window.localStorage,
         store: null
       })
+      // Récupère le bouton "Nouvelle Facture"
       const newBillBtn = screen.getByTestId('btn-new-bill')
+      // Crée une fonction de clic simulée
       const handleClickNewBill = jest.fn(newBills.handleClickNewBill)
+      // Ajoute un écouteur d'événement de clic sur le bouton "Nouvelle Facture"
       newBillBtn.addEventListener('click',handleClickNewBill)
+      // Déclenche un événement de clic sur le bouton "Nouvelle Facture"
       fireEvent.click(newBillBtn);
-
+      // Vérifie si la fonction handleClickNewBill a été appelée
       expect(handleClickNewBill).toHaveBeenCalled();
+      // Vérifie si le texte "Envoyer une note de frais" est présent à l'écran
       expect(screen.getAllByText("Envoyer une note de frais")).toBeTruthy();
     }) 
-    // test("Then clicking on 'New Bill' button should navigate to the NewBill page", async () => {
-    //   Object.defineProperty(window, "localStorage", {
-    //     value: localStorageMock,
-    //   });
-    //   window.localStorage.setItem(
-    //     "user",
-    //     JSON.stringify({
-    //       type: "Employee",
-    //     })
-    //   );
 
-    //   const root = document.createElement("div");
-    //   root.setAttribute("id", "root");
-    //   document.body.appendChild(root);
-
-    //   router();
-    //   await window.onNavigate(ROUTES_PATH.Bills);
-
-    //   // Wait for the "New Bill" button to appear in the DOM
-    //   await waitFor(() => screen.getByTestId("btn-new-bill"));
-
-    //   const buttonNewBill = screen.getByTestId("btn-new-bill");
-    //   await buttonNewBill.dispatchEvent(new MouseEvent("click"));
-
-    //   const newBillUrl = window.location.href.replace(
-    //     /^https?:\/\/localhost\//,
-    //     ""
-    //   );
-    //   expect(newBillUrl).toBe("#employee/bill/new");
-    // });
-
+    // Vérifie si handleClickIconEye est appelée lorsque l'icône est cliquée
     test("handleClickIconEye is called when the icon is clicked", () => {
+      // Crée une instance Bills avec des fonctions simulées
       const billsInstance = new Bills({
         document: document,
         onNavigate: jest.fn(),
@@ -112,25 +107,27 @@ describe("Given I am connected as an employee", () => {
       const mockIcon = document.createElement("div");
       mockIcon.setAttribute("data-bill-url", "mockBillUrl");
   
-      // Mock the handleClickIconEye method
+      // Mock de la méthode handleClickIconEye
       billsInstance.handleClickIconEye = jest.fn();
   
-      // Mock the modal function directly on the prototype of window.$
+      // Mock de la fonction modal directement sur le prototype de window.$
       window.$.fn.modal = jest.fn();
   
-      // Attach the handleClickIconEye method to the icon click event
+      // Attache la méthode handleClickIconEye à l'événement de clic sur l'icône
       mockIcon.addEventListener("click", () =>
         billsInstance.handleClickIconEye(mockIcon)
       );
   
-      // Trigger the click event on the mocked icon
+      // Déclenche l'événement de clic sur l'icône simulée
       mockIcon.dispatchEvent(new MouseEvent("click", { bubbles: true }));
   
-      // Checking if the handleClickIconEye method was called with the expected parameters
+      // Vérifie si handleClickIconEye a été appelée avec les paramètres attendus
       expect(billsInstance.handleClickIconEye).toHaveBeenCalledWith(mockIcon);
     });
 
+    // Vérifie si handleClickIconEye affiche le modal
     test("handleClickIconEye shows modal", () => {
+      // Crée une instance Bills avec des fonctions simulées
       const billsInstance = new Bills({
         document: document,
         onNavigate: jest.fn(),
@@ -139,12 +136,12 @@ describe("Given I am connected as an employee", () => {
       const mockIcon = document.createElement("div");
       mockIcon.setAttribute("data-bill-url", "mockBillUrl");
   
-      // Mock the modal function directly on the prototype of window.$
+      // Mock de la fonction modal directement sur le prototype de window.$
       window.$.fn.modal = jest.fn();
-  
+      // Déclenche handleClickIconEye
       billsInstance.handleClickIconEye(mockIcon);
   
-      // Checking if the modal function was called with the expected parameters
+      // Vérifie si la fonction modal a été appelée avec les paramètres attendus
       expect(window.$.fn.modal).toHaveBeenCalledWith("show");
     });
   });
@@ -160,10 +157,8 @@ describe("Given I am connected as an employee", () => {
       mockIcon2.setAttribute("data-testid", "icon-eye");
       document.body.appendChild(mockIcon1);
       document.body.appendChild(mockIcon2);
-
       // Mock de la méthode handleClickIconEye
       const handleClickIconEyeMock = jest.fn();
-
       // Créer une nouvelle instance de Bills
       const billsInstance = new Bills({
         document,
@@ -171,23 +166,17 @@ describe("Given I am connected as an employee", () => {
         store: {},
         localStorage: {},
       });
-
       // Affecter la méthode handleClickIconEyeMock à handleClickIconEye de l'instance de Bills
       billsInstance.handleClickIconEye = handleClickIconEyeMock;
-
       // Vérifier que des écouteurs d'événements sont attachés à chaque icône "œil"
       expect(mockIcon1.onclick).toBeDefined();
       expect(mockIcon2.onclick).toBeDefined();
-
       // Déclencher l'événement de clic sur mockIcon1
       mockIcon1.click();
-
       // Vérifier que handleClickIconEye est appelé avec mockIcon1
       expect(handleClickIconEyeMock).toHaveBeenCalledWith(mockIcon1);
-
       // Déclencher l'événement de clic sur mockIcon2
       mockIcon2.click();
-
       // Vérifier que handleClickIconEye est appelé avec mockIcon2
       expect(handleClickIconEyeMock).toHaveBeenCalledWith(mockIcon2);
     });
@@ -195,7 +184,7 @@ describe("Given I am connected as an employee", () => {
 
   describe("getBills", () => {
     let instance;
-
+    // Avant chaque test, on crée une nouvelle instance de la classe Bills avec des fonctions simulées
     beforeEach(() => {
       instance = new Bills({
         document: {
@@ -204,68 +193,81 @@ describe("Given I am connected as an employee", () => {
         },
         onNavigate: jest.fn(),
         store: {
-          bills: jest.fn().mockReturnThis(),
-          list: jest.fn(),
+          bills: jest.fn().mockReturnThis(), // Mock de la fonction bills du store
+          list: jest.fn(),// Mock de la fonction list du store
         },
-        localStorage: {},
+        localStorage: {},// localStorage vide
       });
     });
 
+    // Teste le cas où les factures sont renvoyées lorsque le store est défini
     test("should return bills when store is defined", async () => {
+      // Factures fictives
       const mockBills = [
         { date: "2022-01-01", status: "pending" },
         { date: "2022-02-01", status: "accepted" },
       ];
+      // On simule la résolution de la promesse avec les factures fictives
       instance.store.list.mockResolvedValue(mockBills);
-
+      // On appelle la méthode getBills de l'instance Bills
       const result = await instance.getBills();
-
+      // On vérifie que le résultat retourné est conforme aux attentes
       expect(result).toEqual([
         { date: "1 Jan. 22", status: "En attente" },
         { date: "1 Fév. 22", status: "Accepté" },
       ]);
     });
 
+    // Teste la gestion d'une erreur lorsque le format de date est incorrect
     test("should handle error when date format is incorrect", async () => {
+      // Facture fictive avec un format de date incorrect
       const mockBills = [{ date: "incorrect-date", status: "pending" }];
+      // On simule la résolution de la promesse avec la facture fictive
       instance.store.list.mockResolvedValue(mockBills);
-
+      // On appelle la méthode getBills de l'instance Bills
       const result = await instance.getBills();
-
+      // On vérifie que le résultat retourné est conforme aux attentes
       expect(result).toEqual([
         { date: "incorrect-date", status: "En attente" },
       ]);
     });
 
+    // Teste le cas où le store n'est pas défini
     test("should return undefined when store is not defined", async () => {
+      // On affecte undefined à la propriété store de l'instance
       instance.store = undefined;
-
+      // On appelle la méthode getBills de l'instance Bills
       const result = await instance.getBills();
-
+       // On vérifie que le résultat retourné est undefined
       expect(result).toBeUndefined();
     });
-
-    
   });
   describe("When an error occurs on the API", () => {
     beforeEach(() => {
+      // On espionne la méthode "bills" du MockedStore
       jest.spyOn(MockedStore, "bills")
+      // On définit une localStorageMock sur l'objet window
       Object.defineProperty(
         window,
         'localStorage',
         { value: localStorageMock }
       )
+      // On stocke un utilisateur dans localStorage pour simuler une session
       window.localStorage.setItem('user', JSON.stringify({
         type: 'Employee',
         email: 'a@a'
       }))
+      // On crée un élément racine dans le DOM
       const root = document.createElement("div")
       root.setAttribute("id", "root")
       document.body.appendChild(root)
+      // On appelle la fonction router pour initialiser le routage
       router()
     })
 
+    // Teste la récupération des factures depuis l'API et échoue avec un message d'erreur 404
     test("fetches bills from an API and fails with 404 message error", async () => {
+      // On simule un rejet de la promesse avec une erreur "Erreur 404"
       MockedStore.bills.mockImplementationOnce(() => {
         return {
           list : () =>  {
@@ -273,13 +275,19 @@ describe("Given I am connected as an employee", () => {
           }
         }
       })
+      // On déclenche la navigation vers la route "Bills"
       window.onNavigate(ROUTES_PATH.Bills)
+      // On attend que la prochaine tâche soit exécutée dans la file d'attente des événements
       await new Promise(process.nextTick);
+      // On attend que l'élément contenant le message d'erreur "Erreur 404" apparaisse à l'écran
       const message = await waitFor(() => screen.getByText(/Erreur 404/))
+      // On vérifie que le message est bien présent à l'écran
       expect(message).toBeTruthy()
     })
 
+    // Teste la récupération des messages depuis une API et échoue avec un message d'erreur 500
     test("fetches messages from an API and fails with 500 message error", async () => {
+      // On simule un rejet de la promesse avec une erreur "Erreur 500"
       MockedStore.bills.mockImplementationOnce(() => {
         return {
           list : () =>  {
@@ -287,9 +295,13 @@ describe("Given I am connected as an employee", () => {
           }
         }
       })
+      // On déclenche la navigation vers la route "Bills"
       window.onNavigate(ROUTES_PATH.Bills)
+      // On attend que la prochaine tâche soit exécutée dans la file d'attente des événements
       await new Promise(process.nextTick);
+      // On attend que l'élément contenant le message d'erreur "Erreur 500" apparaisse à l'écran
       const message = await waitFor(() => screen.getByText(/Erreur 500/))
+      // On vérifie que le message est bien présent à l'écran
       expect(message).toBeTruthy()
     })
   })
