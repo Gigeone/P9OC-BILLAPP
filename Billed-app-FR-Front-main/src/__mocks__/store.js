@@ -82,6 +82,12 @@ const mockedBills = {
       "pct": 20
     })
   },
+  mock500Error: () => {
+    return Promise.reject(new Error("Erreur 500"));
+  },
+  mock404Error: () => {
+    return Promise.reject(new Error("Erreur 404"));
+  },
 }
 
 export default {

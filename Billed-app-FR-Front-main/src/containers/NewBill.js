@@ -19,62 +19,61 @@ export default class NewBill {
   }
 
   // BUG #3
-  // Handle change event for file input
+  //La fonction gère le processus de sélection d'un fichier par l'utilisateur, vérifie s'il s'agit d'une image, puis envoie ce fichier au serveur avec d'autres données pour créer une nouvelle facture.
   handleChangeFile = (e) => {
-      e.preventDefault(); // Prevent default form submission behavior
+      e.preventDefault(); // Empêche le comportement par défaut de soumission du formulaire
   
-      // Get the file input element
+       // Récupère l'élément d'entrée de fichier
       const fileInput = this.document.querySelector(`input[data-testid="file"]`);
-      const file = fileInput.files[0]; // Get the selected file
+      const file = fileInput.files[0]; // Récupère le fichier sélectionné
   
       if (!file) {
-        // Handle case where no file is selected
+        // Gère le cas où aucun fichier n'est sélectionné
         return;
       }
   
-      // Check if the file is an image
+      // Fonction vérifiant si le fichier est une image
       const isPicture = (mimeType) =>
         ["image/jpeg", "image/jpg", "image/png", "image/gif"].includes(mimeType);
   
       if (!isPicture(file.type)) {
-        // Handle case where the selected file is not an image
+        // Gère le cas où le fichier sélectionné n'est pas une image
         const errorElement = document.createElement("div");
         errorElement.textContent =
           "Le fichier sélectionné n'est pas une image. Veuillez sélectionner un fichier image (JPEG, JPG, PNG, GIF).";
         errorElement.style.color = "red";
   
-        // Display the error message
+        // Affiche le message d'erreur
         fileInput.parentNode.appendChild(errorElement);
   
-        // Reset the file input to allow selecting a new file
+        // Réinitialise l'entrée de fichier pour permettre la sélection d'un nouveau fichier
         fileInput.value = "";
   
         return;
       }
   
-      // Extract the file name from the file path
+     // Extrait le nom du fichier du chemin du fichier
       const filePath = e.target.value.split(/\\/g);
       const fileName = filePath[filePath.length - 1];
   
-      // Create a new FormData object
+      // Crée un nouvel objet FormData
       const formData = new FormData();
   
-      // Get user's email from local storage and append it to the form data
+      // Récupère l'e-mail de l'utilisateur depuis le stockage local et l'ajoute aux données du formulaire
       const email = JSON.parse(localStorage.getItem("user")).email;
       formData.append("file", file);
       formData.append("email", email);
   
-      // Send the form data to the server to create a new bill
+      // Envoie les données du formulaire au serveur pour créer une nouvelle facture
       this.store
-        .bills() // Access the bills resource
-        .create({  // Create a new bill
-          data: formData,  // Set the form data as the request payload
-          headers: {  // Provide additional headers for the request
-            noContentType: true,  // Specify that the request has no content type
+        .bills() // Accède à la ressource des factures
+        .create({   // Crée une nouvelle facture
+          data: formData,  // Définit les données du formulaire comme charge utile de la requête
+          headers: {  // Fournit des en-têtes supplémentaires pour la requête
+            noContentType: true,   // Indique que la requête n'a pas de type de contenu
           },
         })
         .then(({ fileUrl, key }) => {  // Handle successful response
-          console.log(fileUrl);  // Log the file URL
           this.billId = key;  // Set the bill ID
           this.fileUrl = fileUrl;  // Set the file URL
           this.fileName = fileName;  // Set the file name

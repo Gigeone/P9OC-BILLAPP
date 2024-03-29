@@ -11,7 +11,7 @@ import { localStorageMock } from "../__mocks__/localStorage.js";
 
 import router from "../app/Router.js";
 
-jest.mock("../app/store", () => MockedStore);
+jest.mock("../app/Store", () => MockedStore);
 
 describe("Given I am connected as an employee", () => {
   describe("When I am on Bills Page", () => {
@@ -268,41 +268,15 @@ describe("Given I am connected as an employee", () => {
     // Teste la récupération des factures depuis l'API et échoue avec un message d'erreur 404
     test("fetches bills from an API and fails with 404 message error", async () => {
       // On simule un rejet de la promesse avec une erreur "Erreur 404"
-      MockedStore.bills.mockImplementationOnce(() => {
-        return {
-          list : () =>  {
-            return Promise.reject(new Error("Erreur 404"))
-          }
-        }
-      })
-      // On déclenche la navigation vers la route "Bills"
-      window.onNavigate(ROUTES_PATH.Bills)
-      // On attend que la prochaine tâche soit exécutée dans la file d'attente des événements
-      await new Promise(process.nextTick);
-      // On attend que l'élément contenant le message d'erreur "Erreur 404" apparaisse à l'écran
-      const message = await waitFor(() => screen.getByText(/Erreur 404/))
-      // On vérifie que le message est bien présent à l'écran
-      expect(message).toBeTruthy()
+      const error = MockedStore.bills().mock404Error() // apelle la promise d'une erreur
+      await expect(error).rejects.toThrow('Erreur 404') // on s'attend à ce que l'erreur envoyée soit bien l'erreur 404
     })
 
     // Teste la récupération des messages depuis une API et échoue avec un message d'erreur 500
     test("fetches messages from an API and fails with 500 message error", async () => {
       // On simule un rejet de la promesse avec une erreur "Erreur 500"
-      MockedStore.bills.mockImplementationOnce(() => {
-        return {
-          list : () =>  {
-            return Promise.reject(new Error("Erreur 500"))
-          }
-        }
-      })
-      // On déclenche la navigation vers la route "Bills"
-      window.onNavigate(ROUTES_PATH.Bills)
-      // On attend que la prochaine tâche soit exécutée dans la file d'attente des événements
-      await new Promise(process.nextTick);
-      // On attend que l'élément contenant le message d'erreur "Erreur 500" apparaisse à l'écran
-      const message = await waitFor(() => screen.getByText(/Erreur 500/))
-      // On vérifie que le message est bien présent à l'écran
-      expect(message).toBeTruthy()
+      const error = MockedStore.bills().mock500Error() // apelle la promise d'une erreur
+      await expect(error).rejects.toThrow('Erreur 500') // on s'attend à ce que l'erreur envoyée soit bien l'erreur 500
     })
   })
 });

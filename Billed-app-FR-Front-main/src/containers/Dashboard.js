@@ -90,17 +90,17 @@ export default class {
     const currentSelectedBillId = this.selectedBillId;
   
     if (currentSelectedBillId === bill.id) {
-      // If the clicked bill is the currently selected one, toggle the big billed icon
+      // Si la facture cliquée est celle actuellement sélectionnée, basculez l'icône de grande facture
       $(`#open-bill${bill.id}`).css({ background: '#0D5AE5' });
       $('.dashboard-right-container div').html(`
         <div id="big-billed-icon" data-testid="big-billed-icon"> ${BigBilledIcon} </div>
       `);
       $('.vertical-navbar').css({ height: '120vh' });
       
-      // Clear the selected bill
+      // Efface la facture sélectionnée
       this.selectedBillId = null;
     } else {
-      // If a different bill is clicked, update the selected styles and content
+       // Si une autre facture est cliquée, mettez à jour les styles et le contenu sélectionnés
       bills.forEach((b) => {
         $(`#open-bill${b.id}`).css({ background: '#0D5AE5' });
       });
@@ -108,7 +108,7 @@ export default class {
       $('.dashboard-right-container div').html(DashboardFormUI(bill));
       $('.vertical-navbar').css({ height: '150vh' });
   
-      // Update the selected bill
+      // Met à jour la facture sélectionnée
       this.selectedBillId = bill.id;
     }
   
